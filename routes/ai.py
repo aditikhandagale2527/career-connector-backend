@@ -7,7 +7,7 @@ router = APIRouter()
 @router.post("/recommend")
 async def get_recommendations(data: dict):
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash") 
     
     skills = data.get("skills", [])
     prompt = f"""
