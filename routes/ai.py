@@ -3,11 +3,12 @@ import google.generativeai as genai
 import os
 
 router = APIRouter()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-pro")
 
 @router.post("/recommend")
 async def get_recommendations(data: dict):
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel("gemini-1.5-flash-latest")
+    
     skills = data.get("skills", [])
     prompt = f"""
     Based on these skills: {', '.join(skills)}
