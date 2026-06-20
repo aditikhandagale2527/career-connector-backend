@@ -20,3 +20,30 @@ async def get_recommendations(data: dict):
     """
     response = model.generate_content(prompt)
     return {"recommendations": response.text}
+
+
+@router.get("/generate-questions")
+async def generate_questions():
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    
+    prompt = """
+    Generate 9 aptitude test questions (3 LRDI, 3 QA, 3 VARC).
+    Return ONLY a JSON array in this exact format:
+    [
+      {
+        "id": 1,
+        "section": "LRDI",
+        "question": "question text",
+        "options": ["A", "B", "C", "D"],
+        "answer": "correct option"
+      }
+    ]
+    Make questions unique and different each time. No markdown, just pure JSON.
+    """
+    
+    response = model.generate_content(prompt)
+    cleaned = response.text.replace("```json", "").replace("```", "").strip()
+    import json
+    questions = json.loads(cleaned)
+    return {"questions": questions}
