@@ -26,3 +26,9 @@ app.include_router(resume_router, prefix="/api/resume", tags=["Resume"])
 @app.get("/")
 def root():
     return {"message": "Career Connector API is running!"}
+
+# Add this import at the top with your other imports
+from routes.recruiter import router as recruiter_router
+
+# Add this line with your other app.include_router() calls
+app.include_router(recruiter_router, prefix="/api/recruiter", tags=["Recruiter"])
