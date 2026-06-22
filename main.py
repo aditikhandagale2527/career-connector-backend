@@ -4,7 +4,7 @@ from routes.user import router as user_router
 from routes.jobs import router as jobs_router
 from routes.ai import router as ai_router
 from routes.resume import router as resume_router
-
+from routes.recruiter import router as recruiter_router
 
 app = FastAPI(title="Career Connector API")
 
@@ -20,15 +20,8 @@ app.include_router(user_router, prefix="/api/users", tags=["Users"])
 app.include_router(jobs_router, prefix="/api/jobs", tags=["Jobs"])
 app.include_router(ai_router, prefix="/api/ai", tags=["AI"])
 app.include_router(resume_router, prefix="/api/resume", tags=["Resume"])
-
-
+app.include_router(recruiter_router, prefix="/api/recruiter", tags=["Recruiter"])
 
 @app.get("/")
 def root():
     return {"message": "Career Connector API is running!"}
-
-# Add this import at the top with your other imports
-from routes.recruiter import router as recruiter_router
-
-# Add this line with your other app.include_router() calls
-app.include_router(recruiter_router, prefix="/api/recruiter", tags=["Recruiter"])
