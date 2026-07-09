@@ -31,7 +31,7 @@ def calculate_match_score(student_skills: list, job_skills: list) -> int:
     # normalize both lists to lowercase
     student_skills_lower = [s.lower().strip() for s in student_skills]
     job_skills_lower = [s.lower().strip() for s in job_skills]
-    
+
     matched = sum(1 for skill in job_skills_lower if skill in student_skills_lower)
     score = int((matched / len(job_skills_lower)) * 100)
     return score
@@ -61,8 +61,8 @@ async def apply_to_job(body: dict, user=Depends(get_current_user)):
     job_skills = job.get("skills_required", [])
     match_score = calculate_match_score(student_skills, job_skills)
 
-    # Auto shortlist if match >= 60%
-    status = "shortlisted" if match_score >= 60 else "pending"
+    # Auto shortlist if match >= 60%, otherwise auto reject
+    status = "shortlisted" if match_score >= 60 else "rejected"
 
     application = {
         "job_id": job_id,
