@@ -1,4 +1,4 @@
- from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from database import db
 from jose import jwt, JWTError
