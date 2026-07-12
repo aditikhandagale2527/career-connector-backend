@@ -36,8 +36,8 @@ def calculate_match_score_basic(student_skills: list, job_skills: list) -> int:
     matched = sum(1 for skill in job_skills_lower if skill in student_skills_lower)
     return int((matched / len(job_skills_lower)) * 100)
 
-def calculate_match_score_ai(student_skills: list, job_skills: list) -> int:
-    """Smart matching using Gemini — understands related/equivalent skills"""
+def calculate_match_score_ai(student_skills: list, job_skills: list, job_description: str) -> int:
+    """Smart matching using Gemini — considers required skills + full job description context"""
     if not job_skills or not student_skills:
         return 0
 
@@ -46,14 +46,22 @@ def calculate_match_score_ai(student_skills: list, job_skills: list) -> int:
         model = genai.GenerativeModel("gemini-2.5-flash")
 
         prompt = f"""
-        You are evaluating how well a candidate's skills match a job's required skills.
+        You are evaluating how well a candidate matches a job opening.
 
         Candidate's skills: {', '.join(student_skills)}
-        Job's required skills: {', '.join(job_skills)}
 
-        Consider related or equivalent skills as partial or full matches
-        (for example, "Data Visualization" experience reasonably supports a
-        "Power BI" requirement, "JavaScript" supports "Frontend Development", etc).
+        Job's required skills (primary criteria): {', '.join(job_skills)}
+
+        Full job description (use as supporting context only, not the main basis for scoring):
+        {job_description[:2000]}
+
+        Instructions:
+        - Base the score mainly on how well the candidate's skills cover the required skills list.
+        - Treat closely related or equivalent skills as partial or full matches
+          (e.g. "Data Visualization" reasonably supports a "Power BI" requirement).
+        - Use the job description only to add minor context (e.g. experience level,
+          tools mentioned, domain relevance) — do not let unrelated details
+          (like company culture text) affect the score.
 
         Return ONLY a JSON object in this exact format, nothing else:
         {{"match_score": <integer 0-100>}}
@@ -91,7 +99,9 @@ async def apply_to_job(body: dict, user=Depends(get_current_user)):
     student_skills = profile.get("skills", []) if profile else []
 
     job_skills = job.get("skills_required", [])
-    match_score = calculate_match_score_ai(student_skills, job_skills)
+    job_description = job.get("description", "")
+
+    match_score = calculate_match_score_ai(student_skills, job_skills, job_description)
 
     status = "shortlisted" if match_score >= 60 else "rejected"
 
