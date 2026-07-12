@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from database import db
 import PyPDF2
@@ -6,7 +6,7 @@ import io
 import google.generativeai as genai
 from jose import jwt, JWTError
 from datetime import datetime
-from fastapi import HTTPException
+import json
 import os
 
 router = APIRouter()
@@ -26,7 +26,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 @router.post("/upload")
-async def upload_resume(file: UploadFile = File(...), user=Depends(get_current_user)):
+async def upload_resume(
+    file: UploadFile = File(...),
+    user=Depends(get_current_user)
+):
     # Read PDF
     contents = await file.read()
     pdf_reader = PyPDF2.PdfReader(io.BytesIO(contents))
@@ -43,7 +46,6 @@ async def upload_resume(file: UploadFile = File(...), user=Depends(get_current_u
     prompt = f"""
     Extract all technical and soft skills from this resume text.
     Return ONLY a JSON array of skills like: ["Python", "SQL", "Communication"]
-    
     Resume text:
     {text[:3000]}
     """
@@ -51,13 +53,12 @@ async def upload_resume(file: UploadFile = File(...), user=Depends(get_current_u
     response = model.generate_content(prompt)
     skills_text = response.text.replace("```json", "").replace("```", "").strip()
     
-    import json
     try:
         skills_list = json.loads(skills_text)
     except:
         skills_list = []
 
-    # ✅ Save skills to MongoDB tied to student account
+    # Save skills to MongoDB
     await db["student_profiles"].update_one(
         {"user_id": user["id"]},
         {"$set": {
@@ -74,12 +75,3 @@ async def upload_resume(file: UploadFile = File(...), user=Depends(get_current_u
         "extracted_text": text[:500],
         "skills": skills_text
     }
-
-# ✅ New endpoint to get student profile
-@router.get("/profile")
-async def get_student_profile(user=Depends(get_current_user)):
-    profile = await db["student_profiles"].find_one({"user_id": user["id"]})
-    if not profile:
-        return {"skills": [], "aptitude_score": None, "mbti": None}
-    profile["_id"] = str(profile["_id"])
-    return profile
