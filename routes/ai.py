@@ -28,8 +28,8 @@ async def get_optional_user(token: str = Depends(oauth2_scheme)):
 @router.post("/recommend")
 async def get_recommendations(data: dict):
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel("gemini-1.5-flash-latest")
-    
+    model = genai.GenerativeModel("gemini-2.5-flash")
+
     skills = data.get("skills", [])
     prompt = f"""
     Based on these skills: {', '.join(skills)}
@@ -45,8 +45,8 @@ async def get_recommendations(data: dict):
 @router.get("/generate-questions")
 async def generate_questions():
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel("gemini-1.5-flash-latest")
-    
+    model = genai.GenerativeModel("gemini-2.5-flash")
+
     prompt = """
     Generate 9 aptitude test questions (3 LRDI, 3 QA, 3 VARC).
     Return ONLY a JSON array in this exact format:
@@ -61,7 +61,7 @@ async def generate_questions():
     ]
     Make questions unique and different each time. No markdown, just pure JSON.
     """
-    
+
     response = model.generate_content(prompt)
     cleaned = response.text.replace("```json", "").replace("```", "").strip()
     import json
@@ -72,7 +72,7 @@ async def generate_questions():
 async def save_aptitude(data: dict, user=Depends(get_optional_user)):
     if not user:
         return {"message": "Not logged in, score not saved"}
-    
+
     score = data.get("score")
     total = data.get("total")
     sections = data.get("sections", {})
