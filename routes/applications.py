@@ -30,6 +30,7 @@ def calculate_match_score(student_skills: list, job_skills: list) -> int:
         return 0
     student_skills_lower = [s.lower().strip() for s in student_skills]
     job_skills_lower = [s.lower().strip() for s in job_skills]
+
     matched = sum(1 for skill in job_skills_lower if skill in student_skills_lower)
     score = int((matched / len(job_skills_lower)) * 100)
     return score
@@ -54,21 +55,15 @@ async def apply_to_job(body: dict, user=Depends(get_current_user)):
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    # Fetch student skills from MongoDB
+    # Fetch student's skills from MongoDB (not from frontend/localStorage)
     profile = await db["student_profiles"].find_one({"user_id": user["id"]})
     student_skills = profile.get("skills", []) if profile else []
-
-    if not student_skills:
-        raise HTTPException(
-            status_code=400,
-            detail="Please upload your resume first before applying"
-        )
 
     # Calculate match score
     job_skills = job.get("skills_required", [])
     match_score = calculate_match_score(student_skills, job_skills)
 
-    # Auto shortlist if match >= 60%
+    # Auto shortlist if match >= 60%, otherwise auto reject
     status = "shortlisted" if match_score >= 60 else "rejected"
 
     application = {
