@@ -54,7 +54,7 @@ async def apply_to_job(body: dict, user=Depends(get_current_user)):
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    # ✅ Fetch student skills from MongoDB instead of localStorage
+    # Fetch student skills from MongoDB
     profile = await db["student_profiles"].find_one({"user_id": user["id"]})
     student_skills = profile.get("skills", []) if profile else []
 
