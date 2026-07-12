@@ -28,7 +28,7 @@ async def get_optional_user(token: str = Depends(oauth2_scheme)):
 @router.post("/recommend")
 async def get_recommendations(data: dict):
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-pro")  # ← fixed
     
     skills = data.get("skills", [])
     prompt = f"""
@@ -68,7 +68,6 @@ async def generate_questions():
     questions = json.loads(cleaned)
     return {"questions": questions}
 
-# ✅ New endpoint to save aptitude score to MongoDB
 @router.post("/save-aptitude")
 async def save_aptitude(data: dict, user=Depends(get_optional_user)):
     if not user:
