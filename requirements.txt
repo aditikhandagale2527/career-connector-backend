@@ -29,3 +29,5 @@ uvicorn==0.48.0
 google-generativeai>=0.8.5
 PyPDF2
 python-multipart
+httpx
+
